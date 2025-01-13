@@ -41,6 +41,8 @@ public class SocialMediaController {
         app.get("/messages", this::allMessageRetrieverHandler);
         app.get("/messages/{message_id}", this::getMessageByIdHandler);
         app.delete("/messages/{message_id}", this::deleteMessageByIdHandler);
+        app.patch("/messages/{message_id}", this::updateMessageHandler);
+        app.get("/accounts/{account_id}/messages", this::allMessageRetrieverForUserHandler);
         return app;
     }
 
@@ -110,15 +112,55 @@ public class SocialMediaController {
      * @param context The Javalin Context object manages information about both the HTTP request and response.
      */
     private void  getMessageByIdHandler(Context ctx) {
-        // Write Code
+        int messageId = Integer.parseInt(ctx.pathParam("message_id"));
+        Message message = messageService.getMessageById(messageId);
+        if(message!= null) {
+            ctx.json(message);
+        }
+        ctx.status(200);
     }
 
     /**
-     * This is an Message handler to Delete messages by Id.
+     * This is an Message handler to Delete message by Id.
      * @param context The Javalin Context object manages information about both the HTTP request and response.
      */
     private void  deleteMessageByIdHandler(Context ctx) {
-        // Write Code
+        int messageId = Integer.parseInt(ctx.pathParam("message_id"));
+        Message message = messageService.DeleteMessageById(messageId);
+        if(message!= null) {
+            ctx.json(message);
+        }
+        ctx.status(200);
+    }
+
+    /**
+     * This is an Message handler to Retrieve all the messages posted by a particular user.
+     * @param context The Javalin Context object manages information about both the HTTP request and response.
+     */
+    private void  allMessageRetrieverForUserHandler(Context ctx) throws Exception{
+        int accountId = Integer.parseInt(ctx.pathParam("account_id"));
+        List<Message> messages = messageService.allMessageRetrieverForUserHandler(accountId);
+        ctx.status(200);
+        ctx.json(messages);
+    }
+
+
+    /**
+     * This is an Message handler to Update message by Id.
+     * @param context The Javalin Context object manages information about both the HTTP request and response.
+     */
+    private void  updateMessageHandler(Context ctx) throws Exception{
+        ObjectMapper mapper = new ObjectMapper();
+        Message newMessageText = mapper.readValue(ctx.body(), Message.class);
+        int messageId = Integer.parseInt(ctx.pathParam("message_id"));
+        Message message = messageService.UpdateMessageById(newMessageText, messageId);
+        if(message!= null) {
+            ctx.json(message);
+            ctx.status(200);
+        }
+        else {
+            ctx.status(400);
+        }
     }
 
     /**
