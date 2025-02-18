@@ -12,77 +12,84 @@ public class MessageService {
         messageDAO = new MessageDAO();
     }
 
-    public MessageService(MessageDAO MessageDAO) {
-        this.messageDAO = MessageDAO;
+    public MessageService(MessageDAO messageDAO) {
+        this.messageDAO = messageDAO;
     }
 
-    
     /**
-     * @return The Messages matched with id.
+     * Retrieves all messages posted by a specific user.
+     * @param account_id The unique ID of the account whose messages are to be retrieved.
+     * @return A list of messages posted by the user.
      */
     public List<Message> allMessageRetrieverForUserHandler(int account_id) {
         return messageDAO.getAllMessagesSentByParticularUser(account_id);
     }
 
     /**
-     * @param1 newMessageText an Message object
-     * @param2 Message Id
-     * @return The Message which is Updated using id.
+     * Updates the text of a message by its ID.
+     * @param newMessageText A Message object containing the new text.
+     * @param message_id The unique ID of the message to be updated.
+     * @return The updated Message object if the update was successful, otherwise null.
      */
-    public Message UpdateMessageById(Message newMessageText, int message_id) {
+    public Message updateMessageById(Message newMessageText, int message_id) {
         String messageText = newMessageText.getMessage_text();
-        if(messageText == "" || messageText.length() > 255){
+        if (messageText.isEmpty() || messageText.length() > 255) {
             return null;
         }
-        Message messageExistOrNot = messageDAO.getMessageById(message_id);
-        if(messageExistOrNot != null) {
-            if(messageDAO.UpdateMessageById(message_id, messageText)) {
-                messageExistOrNot.setMessage_text(messageText);
-                return messageExistOrNot;
+        Message existingMessage = messageDAO.getMessageById(message_id);
+        if (existingMessage != null) {
+            if (messageDAO.updateMessageById(message_id, messageText)) {
+                existingMessage.setMessage_text(messageText);
+                return existingMessage;
             }
         }
         return null;
     }
 
     /**
-     * @param Message Id
-     * @return The Message which is deleted using id.
+     * Deletes a message from the database by its ID.
+     * @param message_id The unique ID of the message to be deleted.
+     * @return The deleted Message object if found and deleted, otherwise null.
      */
-    public Message DeleteMessageById(int message_id) {
-        Message messageExistOrNot = messageDAO.getMessageById(message_id);
-        if(messageExistOrNot != null) {
-            messageDAO.DeleteMessageById(message_id);
-            return messageExistOrNot;
+    public Message deleteMessageById(int message_id) {
+        Message existingMessage = messageDAO.getMessageById(message_id);
+        if (existingMessage != null) {
+            messageDAO.deleteMessageById(message_id);
+            return existingMessage;
         }
         return null;
     }
 
     /**
-     * @return The Messages matched with id.
+     * Retrieves a message by its ID.
+     * @param message_id The unique ID of the message to be retrieved.
+     * @return The Message object if found, otherwise null.
      */
     public Message getMessageById(int message_id) {
         return messageDAO.getMessageById(message_id);
     }
 
     /**
-     * @return The List of messages.
+     * Retrieves all messages from the database.
+     * @return A list of all messages.
      */
     public List<Message> getAllMessages() {
         return messageDAO.getAllMessages();
     }
 
     /**
-     * @param Message an message object.
-     * @return The persisted message if the persistence is successful.
+     * Inserts a new message into the database.
+     * @param message The Message object to be inserted.
+     * @return The inserted Message object if successful, otherwise null.
      */
     public Message insertMessage(Message message) {
-       if(message.getMessage_text() == "" || message.getMessage_text().length() > 255) {
+        if (message.getMessage_text().isEmpty() || message.getMessage_text().length() > 255) {
             return null;
-       }
-       Boolean checkForValidUser = messageDAO.findAccountById(message.getPosted_by());
-       if(checkForValidUser) {
+        }
+        boolean isValidUser = messageDAO.findAccountById(message.getPosted_by());
+        if (isValidUser) {
             return messageDAO.insertMessage(message);
-       }
-       return null; 
+        }
+        return null;
     }
 }
