@@ -2,25 +2,21 @@ package Controller;
 
 import io.javalin.Javalin;
 import io.javalin.http.Context;
-import net.bytebuddy.utility.visitor.ContextClassVisitor;
-
 import java.util.List;
 import Model.Account;
 import Model.Message;
 import Service.AccountService;
 import Service.MessageService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * TODO: You will need to write your own endpoints and handlers for your controller. The endpoints you will need can be
- * found in readme.md as well as the test cases. You should
- * refer to prior mini-project labs and lecture materials for guidance on how a controller may be built.
+ * Controller class responsible for handling API requests for the social media application.
+ * This class defines various endpoints related to account management and messaging services.
  */
 public class SocialMediaController {
 
-    AccountService accountService;
-    MessageService messageService;
+    private final AccountService accountService;
+    private final MessageService messageService;
 
     public SocialMediaController() {
         accountService = new AccountService();
@@ -28,13 +24,13 @@ public class SocialMediaController {
     }
 
     /**
-     * In order for the test cases to work, you will need to write the endpoints in the startAPI() method, as the test
-     * suite must receive a Javalin object from this method.
-     * @return a Javalin app object which defines the behavior of the Javalin controller.
+     * Initializes the Javalin application and sets up API endpoints.
+     *
+     * @return a Javalin app object that defines the behavior of the controller.
      */
     public Javalin startAPI() {
         Javalin app = Javalin.create();
-        app.get("example-endpoint", this::exampleHandler);
+        app.get("/example-endpoint", this::exampleHandler);
         app.post("/register", this::registerHandler);
         app.post("/login", this::loginHandler);
         app.post("/messages", this::messageHandler);
@@ -47,129 +43,127 @@ public class SocialMediaController {
     }
 
     /**
-     * This is an Register handler for an Account Registration.
-     * @param context The Javalin Context object manages information about both the HTTP request and response.
+     * Handles user registration by creating a new account.
+     *
+     * @param ctx The Javalin Context object that manages the HTTP request and response.
      */
     private void registerHandler(Context ctx) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        Account account = mapper.readValue(ctx.body(), Account.class);  
-        Account addAccount = accountService.insertAccount(account);
-        if(addAccount != null) {
-            ctx.status(200);
-            ctx.json(mapper.writeValueAsString(addAccount));
-        }
-        else {
+        Account account = mapper.readValue(ctx.body(), Account.class);
+        Account addedAccount = accountService.insertAccount(account);
+        if (addedAccount != null) {
+            ctx.status(200).json(mapper.writeValueAsString(addedAccount));
+        } else {
             ctx.status(400);
         }
     }
 
     /**
-     * This is an Login handler for an Logging the esisting user account.
-     * @param context The Javalin Context object manages information about both the HTTP request and response.
+     * Handles user login by verifying existing account credentials.
+     *
+     * @param ctx The Javalin Context object that manages the HTTP request and response.
      */
-    private void loginHandler(Context ctx) throws Exception{
+    private void loginHandler(Context ctx) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         Account account = mapper.readValue(ctx.body(), Account.class);
-        Account login = accountService.LoginToExistingAccount(account);
-        if(login!= null) {
-            ctx.status(200);
-            ctx.json(mapper.writeValueAsString(login));
-        }
-        else{
+        Account login = accountService.loginToExistingAccount(account);
+        if (login != null) {
+            ctx.status(200).json(mapper.writeValueAsString(login));
+        } else {
             ctx.status(401);
         }
     }
 
     /**
-     * This is an Message handler for .
-     * @param context The Javalin Context object manages information about both the HTTP request and response.
+     * Handles message creation by inserting a new message.
+     *
+     * @param ctx The Javalin Context object that manages the HTTP request and response.
      */
     private void messageHandler(Context ctx) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         Message message = mapper.readValue(ctx.body(), Message.class);
-        Message addMessage = messageService.insertMessage(message);
-        if(addMessage!=null) {
-            ctx.status(200);
-            ctx.json(mapper.writeValueAsString(addMessage));
-        }
-        else {
+        Message addedMessage = messageService.insertMessage(message);
+        if (addedMessage != null) {
+            ctx.status(200).json(mapper.writeValueAsString(addedMessage));
+        } else {
             ctx.status(400);
         }
     }
 
     /**
-     * This is an Message handler to Retrieve all messages .
-     * @param context The Javalin Context object manages information about both the HTTP request and response.
+     * Retrieves all messages from the database.
+     *
+     * @param ctx The Javalin Context object that manages the HTTP request and response.
      */
     private void allMessageRetrieverHandler(Context ctx) {
         List<Message> messages = messageService.getAllMessages();
-        ctx.status(200);
-        ctx.json(messages);
+        ctx.status(200).json(messages);
     }
 
     /**
-     * This is an Message handler to Retrieve messages by Id.
-     * @param context The Javalin Context object manages information about both the HTTP request and response.
+     * Retrieves a message by its ID.
+     *
+     * @param ctx The Javalin Context object that manages the HTTP request and response.
      */
-    private void  getMessageByIdHandler(Context ctx) {
+    private void getMessageByIdHandler(Context ctx) {
         int messageId = Integer.parseInt(ctx.pathParam("message_id"));
         Message message = messageService.getMessageById(messageId);
-        if(message!= null) {
-            ctx.json(message);
+        if (message != null) {
+            ctx.status(200).json(message);
+        } else {
+            ctx.status(404);
         }
-        ctx.status(200);
     }
 
     /**
-     * This is an Message handler to Delete message by Id.
-     * @param context The Javalin Context object manages information about both the HTTP request and response.
+     * Deletes a message by its ID.
+     *
+     * @param ctx The Javalin Context object that manages the HTTP request and response.
      */
-    private void  deleteMessageByIdHandler(Context ctx) {
+    private void deleteMessageByIdHandler(Context ctx) {
         int messageId = Integer.parseInt(ctx.pathParam("message_id"));
-        Message message = messageService.DeleteMessageById(messageId);
-        if(message!= null) {
-            ctx.json(message);
+        Message deletedMessage = messageService.deleteMessageById(messageId);
+        if (deletedMessage != null) {
+            ctx.status(200).json(deletedMessage);
+        } else {
+            ctx.status(404);
         }
-        ctx.status(200);
     }
 
     /**
-     * This is an Message handler to Retrieve all the messages posted by a particular user.
-     * @param context The Javalin Context object manages information about both the HTTP request and response.
+     * Retrieves all messages posted by a specific user.
+     *
+     * @param ctx The Javalin Context object that manages the HTTP request and response.
      */
-    private void  allMessageRetrieverForUserHandler(Context ctx) throws Exception{
+    private void allMessageRetrieverForUserHandler(Context ctx) {
         int accountId = Integer.parseInt(ctx.pathParam("account_id"));
         List<Message> messages = messageService.allMessageRetrieverForUserHandler(accountId);
-        ctx.status(200);
-        ctx.json(messages);
+        ctx.status(200).json(messages);
     }
 
-
     /**
-     * This is an Message handler to Update message by Id.
-     * @param context The Javalin Context object manages information about both the HTTP request and response.
+     * Updates a message's content by its ID.
+     *
+     * @param ctx The Javalin Context object that manages the HTTP request and response.
      */
-    private void  updateMessageHandler(Context ctx) throws Exception{
+    private void updateMessageHandler(Context ctx) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         Message newMessageText = mapper.readValue(ctx.body(), Message.class);
         int messageId = Integer.parseInt(ctx.pathParam("message_id"));
-        Message message = messageService.UpdateMessageById(newMessageText, messageId);
-        if(message!= null) {
-            ctx.json(message);
-            ctx.status(200);
-        }
-        else {
+        Message updatedMessage = messageService.updateMessageById(newMessageText, messageId);
+        if (updatedMessage != null) {
+            ctx.status(200).json(updatedMessage);
+        } else {
             ctx.status(400);
         }
     }
 
     /**
-     * This is an example handler for an example endpoint.
-     * @param context The Javalin Context object manages information about both the HTTP request and response.
+     * Example handler for a sample endpoint.
+     *
+     * @param ctx The Javalin Context object that manages the HTTP request and response.
      */
-    private void exampleHandler(Context context) {
-        context.json("sample text");
+    private void exampleHandler(Context ctx) {
+        ctx.json("Sample text");
     }
-
-
 }
